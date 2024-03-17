@@ -1,6 +1,7 @@
 package com.zju.QueryArtisan.service;
 
 import com.zju.QueryArtisan.entity.*;
+import com.zju.QueryArtisan.mysql.CustomPromptRepository;
 import com.zju.QueryArtisan.mysql.QueryListRepository;
 import com.zju.QueryArtisan.mysql.QueryMessageRepository;
 import com.zju.QueryArtisan.mysql.UserRepository;
@@ -21,6 +22,9 @@ public class QueryService{
 
     @Autowired
     private QueryListRepository queryListRepository;
+
+    @Autowired
+    private CustomPromptRepository customPromptRepository;
 
     @Autowired
     private QueryMessageRepository queryMessageRepository;
@@ -278,6 +282,11 @@ public class QueryService{
         QueryData queryData = new QueryData(queryList.getId(), queryList.getTitle(), queryList.getHashValue(), chatMessages);
 
         return Response.success("success",queryData);
+    }
+
+    public Response GetPrompt(){
+        List <CustomPrompt> result = customPromptRepository.findAll();
+        return Response.success("success",result);
     }
 }
 

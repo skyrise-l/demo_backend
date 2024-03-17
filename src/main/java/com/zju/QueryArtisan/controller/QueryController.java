@@ -54,4 +54,11 @@ public class QueryController {
         return queryService.GetChat(QueryId);
     }
 
+    @UserLoginToken
+    @GetMapping("/Home/GetPrompt")
+    public Response GetPrompt(){
+        return queryService.GetPrompt();
+    }
+
+
 }
