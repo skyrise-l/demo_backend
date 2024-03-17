@@ -41,6 +41,8 @@ public class UserService {
             return Response.fail(1002, "password error", null);
         }
 
+        userRepository.save(user);
+
         String token = tokenService.getToken(user);
         Map<String, String> resp = new HashMap<>();
         resp.put("token", token);
@@ -66,6 +68,7 @@ public class UserService {
         user.setUsername(registerPojo.getUsername());
         user.setSalt(salt);
         user.setPassword(passwordHashHex);
+
 
         userRepository.save(user);
 
