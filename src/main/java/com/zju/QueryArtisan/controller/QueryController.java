@@ -28,9 +28,9 @@ public class QueryController {
         return queryService.findData();
     }
     @UserLoginToken
-    @GetMapping("/Home/FlowChart")
-    public Response FlowChart(){
-        return queryService.FlowChart();
+    @GetMapping("/Home/FlowChart_raw")
+    public Response FlowChart_raw(){
+        return queryService.FlowChart_raw();
     }
     @UserLoginToken
     @GetMapping("/Home/GetCode")
@@ -38,9 +38,9 @@ public class QueryController {
         return queryService.GetCode();
     }
     @UserLoginToken
-    @GetMapping("/Home/FlowChart2")
-    public Response FlowChart2(){
-        return queryService.FlowChart2();
+    @GetMapping("/Home/FlowChart_final")
+    public Response FlowChart_final(){
+        return queryService.FlowChart_final();
     }
 
     @UserLoginToken
