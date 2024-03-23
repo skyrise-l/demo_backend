@@ -1,8 +1,10 @@
 package com.zju.QueryArtisan.service;
 
+import com.zju.QueryArtisan.entity.CustomPrompt;
 import com.zju.QueryArtisan.entity.Standard_operator;
 import com.zju.QueryArtisan.entity.Response;
 import com.zju.QueryArtisan.entity.Customer_operator;
+import com.zju.QueryArtisan.mysql.CustomPromptRepository;
 import com.zju.QueryArtisan.mysql.Customer_operatorRepository;
 import com.zju.QueryArtisan.mysql.Standard_operatorRepository;
 import com.zju.QueryArtisan.pojo.Operator.AddOperatorPojo;
@@ -26,6 +28,9 @@ public class OperatorService {
 
     @Autowired
     private Customer_operatorRepository customer_operatorRepository;
+
+    @Autowired
+    private CustomPromptRepository customPromptRepository;
 
     public Response ReadOperator(boolean isStandard){
         if (isStandard){
@@ -120,6 +125,12 @@ public class OperatorService {
     public Response AddPrompt(AddPromptPojo addPromptPojo){
 
         String message = "Add prompt success";
+        CustomPrompt customPrompt = new CustomPrompt();
+        customPrompt.setPrompt(addPromptPojo.getPrompt());
+        customPrompt.setDescription(addPromptPojo.getDescription());
+
+        customPromptRepository.save(customPrompt);
+
         return Response.success(message);
     }
 }

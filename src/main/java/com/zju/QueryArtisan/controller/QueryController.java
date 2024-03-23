@@ -22,25 +22,43 @@ public class QueryController {
         return queryService.StartQuery(queryPojo);
     }
 
-
+    @UserLoginToken
     @GetMapping("/Home/findData")
     public Response findData(){
         return queryService.findData();
     }
-
-    @GetMapping("/Home/FlowChart")
-    public Response FlowChart(){
-        return queryService.FlowChart();
+    @UserLoginToken
+    @GetMapping("/Home/FlowChart_raw")
+    public Response FlowChart_raw(){
+        return queryService.FlowChart_raw();
     }
-
+    @UserLoginToken
     @GetMapping("/Home/GetCode")
     public Response GetCode(){
         return queryService.GetCode();
     }
-
-    @GetMapping("/Home/FlowChart2")
-    public Response FlowChart2(){
-        return queryService.FlowChart2();
+    @UserLoginToken
+    @GetMapping("/Home/FlowChart_final")
+    public Response FlowChart_final(){
+        return queryService.FlowChart_final();
     }
+
+    @UserLoginToken
+    @GetMapping("/Home/GetTitles")
+    public Response GetTitles(){
+        return queryService.GetTitles();
+    }
+    @UserLoginToken
+    @GetMapping("/Home/GetChat")
+    public Response GetChat(@RequestParam Long QueryId){
+        return queryService.GetChat(QueryId);
+    }
+
+    @UserLoginToken
+    @GetMapping("/Home/GetPrompt")
+    public Response GetPrompt(){
+        return queryService.GetPrompt();
+    }
+
 
 }
