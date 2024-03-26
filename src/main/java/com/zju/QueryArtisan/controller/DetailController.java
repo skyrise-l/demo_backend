@@ -18,20 +18,26 @@ public class DetailController {
 
     @UserLoginToken
     @GetMapping("/Detail/Main/{queryId}")
-    public Response mainQuery(@PathVariable String queryId) {
+    public Response mainQuery(@PathVariable int queryId) {
         return detailService.mainQuery(queryId);
     }
 
     @UserLoginToken
     @GetMapping("/Detail/Table/{queryId}")
-    public Response tableQuery(@PathVariable String queryId) {
+    public Response tableQuery(@PathVariable int queryId) {
         return detailService.tableQuery(queryId);
     }
 
     @UserLoginToken
     @GetMapping("/Detail/Json/{queryId}")
-    public Response jsonQuery(@PathVariable String queryId) {
+    public Response jsonQuery(@PathVariable int queryId) {
         return detailService.jsonQuery(queryId);
+    }
+
+    @UserLoginToken
+    @GetMapping("/Detail/Graph/{queryId}")
+    public Response graphQuery(@PathVariable int queryId) {
+        return detailService.graphQuery(queryId);
     }
 
 }
