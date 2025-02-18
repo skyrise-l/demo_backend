@@ -1,24 +1,25 @@
 package com.zju.QueryArtisan.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zju.QueryArtisan.entity.*;
 import com.zju.QueryArtisan.mysql.CustomPromptRepository;
-import com.zju.QueryArtisan.mysql.QueryListRepository;
-import com.zju.QueryArtisan.mysql.QueryMessageRepository;
+import com.zju.QueryArtisan.mysql.MysqlMessageRepository;
 import com.zju.QueryArtisan.mysql.UserRepository;
-import com.zju.QueryArtisan.pojo.Query.QueryPojo;
 import com.zju.QueryArtisan.pojo.Query.SettingsPojo;
-import com.zju.QueryArtisan.utils.Pair;
-import com.zju.QueryArtisan.utils.TokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.zju.QueryArtisan.utils.otherUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,21 +28,10 @@ public class QueryService{
     private UserRepository userRepository;
 
     @Autowired
-    private QueryListRepository queryListRepository;
+    private MysqlMessageRepository mysqlMessageRepository;
 
     @Autowired
     private CustomPromptRepository customPromptRepository;
-
-    @Autowired
-    private QueryMessageRepository queryMessageRepository;
-    public static void addSystemMessageToQueryData(QueryMessage queryMessage, QueryData queryData, String systemMessageContent) {
-        // 创建系统消息
-        ChatMessage systemMessage = new ChatMessage("system", systemMessageContent, System.currentTimeMillis());
-
-        // 检查QueryPojo和QueryData是否为null，然后添加消息
-        queryData.addMessage(systemMessage);
-        queryMessage.setMessage(systemMessageContent);
-    }
 
     private static void sleep(int time){
         try {
@@ -67,90 +57,62 @@ public class QueryService{
         return input.substring(0, numCharacters);
     }
 
-    public Response StartQuery(QueryPojo queryPojo){
-
-        List<ChatMessage> userMessages = new ArrayList<>();
-        List<ChatMessage> systemMessages = new ArrayList<>();
-        QueryList queryList = new QueryList();
-
-        if (queryPojo.getQueryData() != null) {
-            for (ChatMessage message : queryPojo.getQueryData().getMessages()) {
-                if ("user".equals(message.getAuthor())) {
-                    userMessages.add(message);
-                } else if ("system".equals(message.getAuthor())) {
-                    systemMessages.add(message);
-                }
-            }
-        } else {
-            return Response.fail(1011, "The query content cannot be empty.", null);
+    private String convertMessagesToJson(List<QueryMessage> messages) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(messages);
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting messages to JSON", e);
         }
-        QueryData queryData = queryPojo.getQueryData();
+    }
 
-        int totalUserMessages = userMessages.size();
-        String lastUserMessageContent = totalUserMessages > 0 ? userMessages.get(totalUserMessages - 1).getMessage() : "无";
+    public Response StartQuery(QueryData queryData){
+        RestTemplate restTemplate = new RestTemplate();
+        String model = null;
+        String dataSource = null;
+        Long maxToken = 4096L;
+        String systemString = null;
 
-        if (queryData.getTitle().equals("New Title")){
-            queryData.setTitle(extractFirstCharacters(lastUserMessageContent, 10));
-            String hash = generateRandomHash();
-            sleep(3000);
-            queryList.setTitle(queryData.getTitle());
-            queryList.setHashValue(hash);
-            queryData.setHashValue(hash);
-            queryListRepository.save(queryList);
-            queryList = queryListRepository.findByHashValue(hash);
-        } else {
-            queryList = queryListRepository.findByHashValue(queryData.getHashValue());
+        Properties properties = new Properties();
+        try (InputStream input = new FileInputStream("config.properties")) {
+            properties.load(input);
+            model = properties.getProperty("model");
+            dataSource = properties.getProperty("dataSource");
+            maxToken = Long.parseLong(properties.getProperty("max_token"));
+        } catch (Exception e) {
+            Response.fail(1056, "Error model properties", null);
         }
 
-        QueryMessage queryMessage = new QueryMessage();
-        queryMessage.setQueryId(queryList.getId());
-        queryMessage.setAuthor("user");
-        queryMessage.setMessage(lastUserMessageContent);
-        queryMessage.setTimestamp(new Date());
-        queryMessageRepository.save((queryMessage));
+        MysqlMessage mysqlMessage = new MysqlMessage(
+                queryData.getId(),
+                queryData.getTitle(),
+                queryData.getHashValue(),
+                convertMessagesToJson(queryData.getMessages()),
+                model,
+                dataSource,
+                maxToken
+        );
 
-        QueryMessage syetemMessgae = new QueryMessage();
-        syetemMessgae.setQueryId(queryList.getId());
-        syetemMessgae.setAuthor("system");
-        syetemMessgae.setTimestamp(new Date());
+        try {
+            String url = "http://127.0.0.1:9000";
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonRequest = objectMapper.writeValueAsString(mysqlMessage);
 
+            // 构建 HTTP 请求
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonRequest);
+            ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 
-        if (lastUserMessageContent.equals("I would like to know how much time this query consumed.")) {
-            sleep(500);
-            addSystemMessageToQueryData(syetemMessgae, queryData, "This query took a total of 5.123 seconds, with the data analysis code execution time being 0.613 seconds.");
-        } else if (lastUserMessageContent.equals("Can you provide the content of the query result for download?")) {
-            sleep(1000);
-            addSystemMessageToQueryData(syetemMessgae, queryData, "The query results have been packaged. Please click to download.");
-        } else if (lastUserMessageContent.equals("It seems like you misunderstood my request. Please try again.")) {
-            sleep(3000);
-            addSystemMessageToQueryData(syetemMessgae, queryData, "I apologize for the error in our system. We will regenerate the prompts and attempt again.");
-        } else {
-            if (totalUserMessages == 1) {
-                sleep(3000);
-                addSystemMessageToQueryData(syetemMessgae, queryData, "Our system prompt and your custom prompt (click to view) have been generated and sent. The query has been completed. Please check.");
-            } else if (totalUserMessages == 2) {
-                sleep(3000);
-                addSystemMessageToQueryData(syetemMessgae, queryData, "Our system prompt and your custom prompt (click to view) have been generated and sent. The query has been completed. Please check.");
-
-            } else {
-                sleep(3000);
-                addSystemMessageToQueryData(syetemMessgae, queryData, "Our system prompt and your custom prompt (click to view) have been generated and sent. The query has been completed. Please check and click to download.");
-            }
+            systemString = responseEntity.getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("Error sending request to service", e);
         }
-        queryMessageRepository.save((syetemMessgae));
 
-        String query = "Find the IDs, total prices, order descriptions, and product images of all orders from people known by Mike.";
+        QueryMessage systemMessage = new QueryMessage("system", systemString, java.time.LocalDateTime.now().toString());
+        queryData.getMessages().add(systemMessage);
 
-        Optional<User> target = userRepository.findById(1L);
-        User user = target.get();
-        if (user.getFlag() == 2){
-            user.setFlag(0);
-        } else if (user.getFlag() == 0) {
-            user.setFlag(1);
-        } else if (user.getFlag() == 1) {
-            user.setFlag(2);
-        }
-        userRepository.save(user);
+        mysqlMessage.setMessages(convertMessagesToJson(queryData.getMessages()));
+        mysqlMessageRepository.save(mysqlMessage);
+
         return Response.success("success", queryData);
     }
 
@@ -419,28 +381,25 @@ public class QueryService{
     }
 
     public Response GetTitles(){
-        List<QueryList> queryLists = queryListRepository.findAll();
+        List<MysqlMessage> mysqlMessageLists = mysqlMessageRepository.findAll();
 
+        List<QueryData> queryDataList = new ArrayList<>();
+        for (MysqlMessage mysqlMessage : mysqlMessageLists) {
+            // 使用 convertToQueryData() 函数进行转换
+            queryDataList.add(otherUtils.convertToQueryData(mysqlMessage));
+        }
 
-        return Response.success("success", queryLists);
+        return Response.success("success", queryDataList);
     }
 
     public Response GetChat(Long QueryId){
-        Optional<QueryList> target = queryListRepository.findById(QueryId);
-        if (target.isEmpty()){
+        Optional<MysqlMessage> mysqlMessage = mysqlMessageRepository.findById(QueryId);
+
+        if (mysqlMessage.isEmpty()){
             return Response.fail(1011, "Error QueryId", null);
         }
-        QueryList queryList = target.get();
-        List<QueryMessage> queryMessageList = queryMessageRepository.findAllByQueryId(QueryId);
 
-        List<ChatMessage> chatMessages = new ArrayList<>();
-
-        for (QueryMessage qm : queryMessageList) {
-            ChatMessage chatMessage = new ChatMessage(qm.getAuthor(), qm.getMessage(), qm.getTimestamp().getTime());
-            chatMessages.add(chatMessage);
-        }
-
-        QueryData queryData = new QueryData(queryList.getId(), queryList.getTitle(), queryList.getHashValue(), chatMessages);
+        QueryData queryData = otherUtils.convertToQueryData(mysqlMessage.get());
 
         return Response.success("success",queryData);
     }
@@ -475,11 +434,11 @@ public class QueryService{
         return Response.success("success", results);
     }
 
-    public Response Setting(SettingsPojo settingsPojo){
+    public Response Settings(SettingsPojo settingsPojo){
 
         try {
             // 更新配置文件
-            File configFile = new File("D:\\数据库\\vldb_demo\\demo\\QueryArtisan\\src\\main\\resources\\config.properties");
+            File configFile = new File("config.properties");
             if (!configFile.exists()) {
                 configFile.createNewFile();  // 如果文件不存在，创建一个新的文件
             }

@@ -1,5 +1,9 @@
 package com.zju.QueryArtisan.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zju.QueryArtisan.entity.MysqlMessage;
+import com.zju.QueryArtisan.entity.QueryData;
+import com.zju.QueryArtisan.entity.QueryMessage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Reader;
@@ -46,5 +50,30 @@ public class otherUtils {
         }
 
         return recordsList;
+    }
+
+    public static QueryData convertToQueryData(MysqlMessage mysqlMessage) {
+        // 将 messages 字段的 JSON 字符串转换为 List<QueryMessage>
+        List<QueryMessage> messages = parseMessages(mysqlMessage.getMessages());
+
+        // 创建并返回 QueryData 实例
+        return new QueryData(
+                mysqlMessage.getId(),
+                mysqlMessage.getTitle(),
+                mysqlMessage.getHashValue(),
+                messages
+        );
+    }
+
+    // 将 JSON 字符串转换为 List<QueryMessage>
+    public static List<QueryMessage> parseMessages(String messagesJson) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            // 解析 messages JSON 字符串为 List<QueryMessage>
+            return objectMapper.readValue(messagesJson, objectMapper.getTypeFactory().constructCollectionType(List.class, QueryMessage.class));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error parsing messages JSON", e);
+        }
     }
 }

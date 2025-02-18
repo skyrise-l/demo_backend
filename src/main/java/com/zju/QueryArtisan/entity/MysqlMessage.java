@@ -4,15 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class QueryData {
+public class MysqlMessage {
     private Long id;
-    private String title; // 对话标题
-    private String hashValue; // 对话的hash值，用于验证或快速检索
-    private List<QueryMessage> messages;
+    private String title;
+    private String hashValue;
+    private String messages;
+    private String model;
+    private String dataSource;
+    private Long max_token;
 }

@@ -1,6 +1,7 @@
 package com.zju.QueryArtisan.controller;
 
 import com.zju.QueryArtisan.annotations.UserLoginToken;
+import com.zju.QueryArtisan.entity.QueryData;
 import com.zju.QueryArtisan.entity.Response;
 import com.zju.QueryArtisan.pojo.Query.QueryPojo;
 import com.zju.QueryArtisan.pojo.Query.SettingsPojo;
@@ -19,8 +20,8 @@ public class QueryController {
 
     @UserLoginToken
     @PostMapping("/Home/Query")
-    public Response StartQuery(@RequestBody QueryPojo queryPojo){
-        return queryService.StartQuery(queryPojo);
+    public Response StartQuery(@RequestBody QueryData queryData){
+        return queryService.StartQuery(queryData);
     }
 
     @UserLoginToken
@@ -70,6 +71,6 @@ public class QueryController {
     @UserLoginToken
     @PostMapping("/Home/Setting")
     public Response Settings(@RequestBody SettingsPojo settingsPojo){
-        return queryService.Settings();
+        return queryService.Settings(settingsPojo);
     }
 }
