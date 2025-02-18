@@ -6,13 +6,17 @@ import com.zju.QueryArtisan.mysql.QueryListRepository;
 import com.zju.QueryArtisan.mysql.QueryMessageRepository;
 import com.zju.QueryArtisan.mysql.UserRepository;
 import com.zju.QueryArtisan.pojo.Query.QueryPojo;
+import com.zju.QueryArtisan.pojo.Query.SettingsPojo;
 import com.zju.QueryArtisan.utils.Pair;
 import com.zju.QueryArtisan.utils.TokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
+import com.zju.QueryArtisan.utils.otherUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -130,7 +134,7 @@ public class QueryService{
 
             } else {
                 sleep(3000);
-                addSystemMessageToQueryData(syetemMessgae, queryData, "Our system prompt and your custom prompt (click to view) have been generated and sent. The query has been completed. Please check.");
+                addSystemMessageToQueryData(syetemMessgae, queryData, "Our system prompt and your custom prompt (click to view) have been generated and sent. The query has been completed. Please check and click to download.");
             }
         }
         queryMessageRepository.save((syetemMessgae));
@@ -301,8 +305,6 @@ public class QueryService{
 
         }
 
-
-
         Map<String, Object> data = new HashMap<>();
         data.put("logicalEdges", logicalEdges);
         data.put("logicalNodes", logicalNodes);
@@ -316,11 +318,11 @@ public class QueryService{
         User user = target.get();
         String data = null;
         if (user.getFlag() == 0) {
-            data = "import pandas as pd;\nimport dataDeal;\n\n# Step 1 - Step 2\nusers = pd.read_csv('users.csv')\nuser_relations = dataDeal.graph_edge('user_relations', ['relation'])[0]\n\n# Step 3\nmerged_data = pd.merge(users, user_relations, left_on='user_id', right_on='from_userId')\n\n# Step 4\nmike_follows = merged_data[(merged_data['user_name'] == 'mike') & (merged_data['relation'] == 'follow')]\n\n# Step 5 - Step6 \nmike_follows_names = users[users['user_id'].isin(mike_follows['to_userId'])]['user_name']\n\n# Step 7\nmike_follows_names.to_csv('query1_result.csv', index=False)";
+            data = "import pandas as pd;\nimport dataDeal;\n\n# Step 1 - Step 2\nusers = pd.read_csv('users.csv')\nuser_relations = dataDeal.graph_edge('user_relations', ['relation'])[0]\n\n# Step 3\nmerged_data = pd.merge(users, user_relations, left_on='user_id', right_on='from_userId')\n\n# Step 4\nmike_follows = merged_data[(merged_data['user_name'] == 'mike') & (merged_data['relation'] == 'follow')]\n\n# Step 5 - Step6 \nmike_follows_names = users[users['user_id'].isin(mike_follows['to_userId'])]['user_name']\n\n# Step 7\nmike_follows_names.to_csv('query_result.csv', index=False)";
         }  else if (user.getFlag() == 1) {
             data = "import pandas as pd;\nimport dataDeal;\n\n# Step 1 - Step 3\npre_results = pd.read_csv('/mnt/result/136314daa2a17c42e4eb9e305b518c34_result.csv')\njson_reviews_item = dataDeal.json_deal('/mnt/data/review_items.csv', ['review_time'])[0]\nbooks = pd.read_csv('/mnt/data/books.csv')\n\n# Step 4\nuser_names = pre_results['user_name']\n\n# Step 5\njson_reviews_item['review_time'] = pd.to_datetime(json_reviews_item['review_time'])\n\n# Step 6\nfiltered_reviews = json_reviews_item[json_reviews_item['review_time'] > pd.Timestamp('2020-01-01')]\n\n# Step 7\nuser_reviews = filtered_reviews[filtered_reviews['username'].isin(user_names)]\n\n# Step 8\nreviews_with_titles = pd.merge(user_reviews, books[['book_id', 'title']], on='book_id', how='left')\n\n# Step 9\nreviews_with_titles.to_csv('/mnt/data/query_result.csv', index=False)";
         } else if (user.getFlag() == 2) {
-            data = "import pandas as pd;\nimport dataDeal;\n\n# Step 1 - Step 5\nusers = pd.read_csv('users.csv')\nuser_relations = dataDeal.graph_edge('user_relations', ['relation'])[0]\nreview_items = dataDeal.json_deal('/mnt/data/review_items.csv', ['score'])[0]\nbooks = pd.read_csv('books.csv')\nbook_img_desc = pd.read_csv('book_img_desc.csv')\n\n# Step 6 - Step 7\nmike_user_id = users[users['user_name'] == 'mike']['user_id'].iloc[0]\n\n# Step 8\nmike_likes_user_ids = user_relations[(user_relations['from_userId'] == mike_user_id) & (user_relations['relation'] == 'like')]['to_userId']\n\n# Step 9\nreviews_from_liked_users = review_items[review_items['user_id'].isin(mike_likes_user_ids)]\n\n# Step 10 - Step 11\naverage_scores = reviews_from_liked_users.groupby('book_id', as_index=False)['score'].mean()\n\n# Step 12 - Step 13\nbooks_above_4 = average_scores[average_scores['score'] > 4.5]['book_id']\n\n# Step 14\nbooks_info = books[books['book_id'].isin(books_above_4)]\n\n# Step 15\nbooks_img_desc = book_img_desc[book_img_desc['book_id'].isin(books_above_4)]\n\n# Step 16\nfinal_books_info = pd.merge(books_info, books_img_desc, on='book_id')\n\n# Step 17\nfinal_books_info = final_books_info[['title', 'author', 'img_url', 'description']]\n\n# Step 18\nfinal_books_info.to_csv('query3_result.csv', index=False)\n";
+            data = "import pandas as pd;\nimport dataDeal;\n\n# Step 1 - Step 5\nusers = pd.read_csv('users.csv')\nuser_relations = dataDeal.graph_edge('user_relations', ['relation'])[0]\nreview_items = dataDeal.json_deal('/mnt/data/review_items.csv', ['score'])[0]\nbooks = pd.read_csv('books.csv')\nbook_img_desc = pd.read_csv('book_img_desc.csv')\n\n# Step 6 - Step 7\nmike_user_id = users[users['user_name'] == 'mike']['user_id'].iloc[0]\n\n# Step 8\nmike_likes_user_ids = user_relations[(user_relations['from_userId'] == mike_user_id) & (user_relations['relation'] == 'like')]['to_userId']\n\n# Step 9\nreviews_from_liked_users = review_items[review_items['user_id'].isin(mike_likes_user_ids)]\n\n# Step 10 - Step 11\naverage_scores = reviews_from_liked_users.groupby('book_id', as_index=False)['score'].mean()\n\n# Step 12 - Step 13\nbooks_above_4 = average_scores[average_scores['score'] > 4.5]['book_id']\n\n# Step 14\nbooks_info = books[books['book_id'].isin(books_above_4)]\n\n# Step 15\nbooks_img_desc = book_img_desc[book_img_desc['book_id'].isin(books_above_4)]\n\n# Step 16\nfinal_books_info = pd.merge(books_info, books_img_desc, on='book_id')\n\n# Step 17\nfinal_books_info = final_books_info[['title', 'author', 'img_url', 'description']]\n\n# Step 18\nfinal_books_info.to_csv('query_result.csv', index=False)\n";
         }
 
         return Response.success("success", data);
@@ -409,9 +411,6 @@ public class QueryService{
 
         }
 
-
-
-
         Map<String, Object> data = new HashMap<>();
         data.put("logicalEdges", logicalEdges);
         data.put("logicalNodes", logicalNodes);
@@ -450,5 +449,62 @@ public class QueryService{
         List <CustomPrompt> result = customPromptRepository.findAll();
         return Response.success("success",result);
     }
+
+    public Response GetResults(){
+
+        String filePath = null;
+
+        Optional<User> target = userRepository.findById(1L);
+        User user = target.get();
+
+        if (user.getFlag() == 0){
+            filePath = "src/main/resources/queryResult/query1/query1_result.csv";
+        } else if (user.getFlag() == 1) {
+            filePath = "src/main/resources/queryResult/query2/query2_result.csv";
+        } else{
+            filePath = "src/main/resources/queryResult/query3/query3_result.csv";
+        }
+
+        List<Map<String, String>> results = null;
+        try {
+            results = otherUtils.readCsvWithHeader(filePath);
+        } catch (Exception e) {
+            return Response.fail(1023, "Get result File error", null);
+        }
+
+        return Response.success("success", results);
+    }
+
+    public Response Setting(SettingsPojo settingsPojo){
+
+        try {
+            // 更新配置文件
+            File configFile = new File("D:\\数据库\\vldb_demo\\demo\\QueryArtisan\\src\\main\\resources\\config.properties");
+            if (!configFile.exists()) {
+                configFile.createNewFile();  // 如果文件不存在，创建一个新的文件
+            }
+
+            Properties properties = new Properties();
+            try (FileInputStream inStream = new FileInputStream(configFile)) {
+                properties.load(inStream);  // 加载当前的配置文件内容
+            }
+
+            // 更新配置项
+            properties.setProperty("model", settingsPojo.getModel());
+            properties.setProperty("dataSource", settingsPojo.getDataSource());
+            properties.setProperty("max_token", String.valueOf(settingsPojo.getMax_token()));
+
+            // 保存更新后的配置
+            try (FileOutputStream outStream = new FileOutputStream(configFile)) {
+                properties.store(outStream, null);  // 将更新的属性写入文件
+            }
+
+        } catch (Exception e) {
+            return Response.fail(1053, "Failed to update settings", null);
+        }
+
+        return Response.success("suceess");
+    }
+
 }
 

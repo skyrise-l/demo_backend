@@ -3,6 +3,7 @@ package com.zju.QueryArtisan.controller;
 import com.zju.QueryArtisan.annotations.UserLoginToken;
 import com.zju.QueryArtisan.entity.Response;
 import com.zju.QueryArtisan.pojo.Query.QueryPojo;
+import com.zju.QueryArtisan.pojo.Query.SettingsPojo;
 import com.zju.QueryArtisan.service.QueryService;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,5 +61,15 @@ public class QueryController {
         return queryService.GetPrompt();
     }
 
+    @UserLoginToken
+    @GetMapping("/Home/GetResults")
+    public Response GetResults(){
+        return queryService.GetResults();
+    }
 
+    @UserLoginToken
+    @PostMapping("/Home/Setting")
+    public Response Settings(@RequestBody SettingsPojo settingsPojo){
+        return queryService.Settings();
+    }
 }
