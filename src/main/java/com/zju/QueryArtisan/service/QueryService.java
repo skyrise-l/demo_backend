@@ -2,6 +2,7 @@ package com.zju.QueryArtisan.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zju.QueryArtisan.entity.*;
+import com.zju.QueryArtisan.mysql.BatchQueriesRepository;
 import com.zju.QueryArtisan.mysql.CustomPromptRepository;
 import com.zju.QueryArtisan.mysql.MysqlMessageRepository;
 import com.zju.QueryArtisan.mysql.UserRepository;
@@ -14,11 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.zju.QueryArtisan.utils.otherUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.awt.desktop.SystemEventListener;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 
 @Slf4j
@@ -32,6 +34,9 @@ public class QueryService{
 
     @Autowired
     private CustomPromptRepository customPromptRepository;
+
+    @Autowired
+    private BatchQueriesRepository batchQueriesRepository;
 
     private static void sleep(int time){
         try {
@@ -83,17 +88,16 @@ public class QueryService{
             Response.fail(1056, "Error model properties", null);
         }
 
-        MysqlMessage mysqlMessage = new MysqlMessage(
-                queryData.getId(),
-                queryData.getTitle(),
-                queryData.getHashValue(),
-                convertMessagesToJson(queryData.getMessages()),
-                model,
-                dataSource,
-                maxToken
-        );
-
         try {
+            MysqlMessage mysqlMessage = new MysqlMessage(
+                    queryData.getId(),
+                    queryData.getTitle(),
+                    queryData.getHashValue(),
+                    convertMessagesToJson(queryData.getMessages()),
+                    model,
+                    dataSource,
+                    maxToken
+            );
             String url = "http://127.0.0.1:9000";
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonRequest = objectMapper.writeValueAsString(mysqlMessage);
@@ -103,17 +107,67 @@ public class QueryService{
             ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
 
             systemString = responseEntity.getBody();
+
+            QueryMessage systemMessage = new QueryMessage("system", systemString, System.currentTimeMillis());
+
+            queryData.getMessages().add(systemMessage);
+
+            mysqlMessage.setMessages(convertMessagesToJson(queryData.getMessages()));
+            mysqlMessageRepository.save(mysqlMessage);
         } catch (Exception e) {
-            throw new RuntimeException("Error sending request to service", e);
+
+            return Response.fail(1073, "Error sending request to service", null);
         }
-
-        QueryMessage systemMessage = new QueryMessage("system", systemString, java.time.LocalDateTime.now().toString());
-        queryData.getMessages().add(systemMessage);
-
-        mysqlMessage.setMessages(convertMessagesToJson(queryData.getMessages()));
-        mysqlMessageRepository.save(mysqlMessage);
-
         return Response.success("success", queryData);
+    }
+
+
+    public Response batchQuery(String queries, MultipartFile[] files){
+        String resultUrl = null;
+        String upload_path = null;
+        try {
+            if (files != null && files.length > 0) {
+                upload_path = "D:\\数据库\\vldb_demo\\demo\\QueryArtisan\\src\\main\\resources\\upload_report\\" + System.currentTimeMillis();
+                otherUtils.saveFiles(files, upload_path);
+            }
+
+            String externalServiceUrl = "http://127.0.0.1:9000";
+
+            URL url = new URL(externalServiceUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            String jsonPayload = "{\"queries\": \"" + queries + "\", \"filepath\": \"" + upload_path + "\"}";
+
+            OutputStream os = connection.getOutputStream();
+            byte[] input = jsonPayload.getBytes("utf-8");
+            os.write(input, 0, input.length);
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                // 读取返回的URL
+                resultUrl = new String(connection.getInputStream().readAllBytes(), "UTF-8");
+            } else {
+                Response.fail(1074, "Error processing batch query", null);
+            }
+            BatchQueries batchQueries = new BatchQueries();
+            batchQueries.setQueries(queries);
+            batchQueries.setFilePath(upload_path);
+            batchQueriesRepository.saveAndFlush(batchQueries);
+
+            return Response.success("success", resultUrl);
+        } catch (Exception e){
+            sleep(3000);
+            BatchQueries batchQueries = new BatchQueries();
+            batchQueries.setQueries(queries);
+            batchQueries.setFilePath(upload_path);
+            batchQueriesRepository.saveAndFlush(batchQueries);
+            resultUrl = "http://127.0.0.1:9000";
+            return Response.success("success", resultUrl);
+            //return Response.fail(1074, "Error processing batch query", null);
+        }
     }
 
     public Response findData(){

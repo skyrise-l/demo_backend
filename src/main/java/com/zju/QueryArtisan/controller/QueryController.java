@@ -3,10 +3,10 @@ package com.zju.QueryArtisan.controller;
 import com.zju.QueryArtisan.annotations.UserLoginToken;
 import com.zju.QueryArtisan.entity.QueryData;
 import com.zju.QueryArtisan.entity.Response;
-import com.zju.QueryArtisan.pojo.Query.QueryPojo;
 import com.zju.QueryArtisan.pojo.Query.SettingsPojo;
 import com.zju.QueryArtisan.service.QueryService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 
@@ -73,4 +73,16 @@ public class QueryController {
     public Response Settings(@RequestBody SettingsPojo settingsPojo){
         return queryService.Settings(settingsPojo);
     }
+
+    @UserLoginToken
+    @PostMapping("/Home/batchQuery")
+    public Response batchQuery(@RequestParam("queries") String queries, @RequestParam(value = "files", required = false) MultipartFile[] files){
+        if (files == null || files.length == 0) {
+            return queryService.batchQuery(queries, null);
+        } else {
+            return queryService.batchQuery(queries, files);
+        }
+    }
+
+
 }

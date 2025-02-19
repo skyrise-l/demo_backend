@@ -6,18 +6,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MysqlMessage {
+public class BatchQueries {
     @Id
-    private Long id;
-    private String title;
-    private String hashValue;
-    private String messages;
-    private String model;
-    private String dataSource;
-    private Long max_token;
+    private long id;
+    private String queries;
+    private String filePath;
 }

@@ -6,12 +6,14 @@ import com.zju.QueryArtisan.entity.QueryData;
 import com.zju.QueryArtisan.entity.QueryMessage;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.Reader;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.nio.file.Paths;
@@ -72,8 +74,42 @@ public class otherUtils {
             // 解析 messages JSON 字符串为 List<QueryMessage>
             return objectMapper.readValue(messagesJson, objectMapper.getTypeFactory().constructCollectionType(List.class, QueryMessage.class));
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Error parsing messages JSON", e);
+        }
+    }
+
+    public static void saveFiles(MultipartFile[] files, String uploadPath) {
+        // 确保上传路径存在
+        File uploadDir = new File(uploadPath);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+
+        try {
+            File savedFile = null;
+            for (MultipartFile file : files) {
+                savedFile = new File(uploadPath + File.separator + file.getOriginalFilename());
+                file.transferTo(savedFile);  // 保存文件
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error deal upload file", e);
+        }
+    }
+
+    public static void  deleteFiles(String upload_path) {
+        File directory = new File(upload_path);
+
+        if (directory.exists() && directory.isDirectory()) {
+            // 获取目录下的所有文件
+            File[] files = directory.listFiles();
+            if (files != null) {
+                // 遍历所有文件并删除
+                for (File file : files) {
+                    if (file.isFile()) {
+                        file.delete();
+                    }
+                }
+            }
         }
     }
 }
