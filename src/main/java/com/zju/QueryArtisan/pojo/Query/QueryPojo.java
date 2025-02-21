@@ -1,6 +1,6 @@
 package com.zju.QueryArtisan.pojo.Query;
 
-import com.zju.QueryArtisan.entity.QueryData;
+import com.zju.QueryArtisan.entity.dataStruct.QueryData;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

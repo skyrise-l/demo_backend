@@ -1,8 +1,8 @@
 package com.zju.QueryArtisan.controller;
 
 import com.zju.QueryArtisan.annotations.UserLoginToken;
-import com.zju.QueryArtisan.entity.QueryData;
-import com.zju.QueryArtisan.entity.Response;
+import com.zju.QueryArtisan.entity.dataStruct.QueryData;
+import com.zju.QueryArtisan.entity.dataStruct.Response;
 import com.zju.QueryArtisan.pojo.Query.SettingsPojo;
 import com.zju.QueryArtisan.service.QueryService;
 import org.springframework.web.bind.annotation.*;
@@ -84,5 +84,16 @@ public class QueryController {
         }
     }
 
+    @UserLoginToken
+    @GetMapping("/Home/GetHistoryQueries")
+    public Response GetHistoryQueries(){
+        return queryService.GetHistoryQueries();
+    }
+
+    @UserLoginToken
+    @GetMapping("/Home/DeleteHistoryQuery")
+    public Response DeleteHistoryQuery(@RequestParam Long QueryId){
+        return queryService.DeleteHistoryQuery(QueryId);
+    }
 
 }

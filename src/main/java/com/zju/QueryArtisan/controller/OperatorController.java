@@ -1,7 +1,7 @@
 package com.zju.QueryArtisan.controller;
 
 import com.zju.QueryArtisan.annotations.UserLoginToken;
-import com.zju.QueryArtisan.entity.Response;
+import com.zju.QueryArtisan.entity.dataStruct.Response;
 import com.zju.QueryArtisan.pojo.Operator.AddOperatorPojo;
 import com.zju.QueryArtisan.pojo.Operator.AddPromptPojo;
 import com.zju.QueryArtisan.pojo.Operator.EditOperatorPojo;

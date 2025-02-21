@@ -2,8 +2,8 @@ package com.zju.QueryArtisan.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.zju.QueryArtisan.entity.Response;
-import com.zju.QueryArtisan.entity.User;
+import com.zju.QueryArtisan.entity.dataStruct.Response;
+import com.zju.QueryArtisan.entity.mysqlEntity.User;
 import com.zju.QueryArtisan.mysql.UserRepository;
 import com.zju.QueryArtisan.utils.Pair;
 import com.zju.QueryArtisan.utils.TokenUtil;

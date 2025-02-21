@@ -1,6 +1,6 @@
 package com.zju.QueryArtisan.controller;
 
-import com.zju.QueryArtisan.entity.Response;
+import com.zju.QueryArtisan.entity.dataStruct.Response;
 import com.zju.QueryArtisan.annotations.*;
 import com.zju.QueryArtisan.pojo.User.*;
 import com.zju.QueryArtisan.service.UserService;

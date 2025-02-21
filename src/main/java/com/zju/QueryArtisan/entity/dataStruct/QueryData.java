@@ -1,10 +1,9 @@
-package com.zju.QueryArtisan.entity;
+package com.zju.QueryArtisan.entity.dataStruct;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data

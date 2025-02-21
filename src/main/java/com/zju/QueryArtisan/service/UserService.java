@@ -1,7 +1,7 @@
 package com.zju.QueryArtisan.service;
 
-import com.zju.QueryArtisan.entity.Response;
-import com.zju.QueryArtisan.entity.User;
+import com.zju.QueryArtisan.entity.dataStruct.Response;
+import com.zju.QueryArtisan.entity.mysqlEntity.User;
 import com.zju.QueryArtisan.pojo.User.*;
 import com.zju.QueryArtisan.utils.*;
 import com.zju.QueryArtisan.mysql.*;

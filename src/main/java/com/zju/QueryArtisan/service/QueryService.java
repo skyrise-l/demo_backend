@@ -2,10 +2,12 @@ package com.zju.QueryArtisan.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zju.QueryArtisan.entity.*;
-import com.zju.QueryArtisan.mysql.BatchQueriesRepository;
-import com.zju.QueryArtisan.mysql.CustomPromptRepository;
-import com.zju.QueryArtisan.mysql.MysqlMessageRepository;
-import com.zju.QueryArtisan.mysql.UserRepository;
+import com.zju.QueryArtisan.entity.mysqlEntity.BatchQueries;
+import com.zju.QueryArtisan.entity.dataStruct.QueryData;
+import com.zju.QueryArtisan.entity.dataStruct.QueryMessage;
+import com.zju.QueryArtisan.entity.dataStruct.Response;
+import com.zju.QueryArtisan.entity.mysqlEntity.*;
+import com.zju.QueryArtisan.mysql.*;
 import com.zju.QueryArtisan.pojo.Query.SettingsPojo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +16,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.zju.QueryArtisan.utils.otherUtils;
+import com.zju.QueryArtisan.utils.StringUtils;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.awt.desktop.SystemEventListener;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -38,39 +41,10 @@ public class QueryService{
     @Autowired
     private BatchQueriesRepository batchQueriesRepository;
 
-    private static void sleep(int time){
-        try {
-            Thread.sleep(time);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
+    @Autowired
+    private QueryHistoryRepository queryHistoryRepository;
 
-    public static String generateRandomHash() {
-        // 使用UUID生成随机的哈希值
-        UUID uuid = UUID.randomUUID();
-        return uuid.toString();
-    }
-
-    public static String extractFirstCharacters(String input, int numCharacters) {
-        // 如果输入字符串长度小于等于要提取的字符数，则直接返回整个字符串
-        if (input.length() <= numCharacters) {
-            return input;
-        }
-
-        // 否则，提取前numCharacters个字符
-        return input.substring(0, numCharacters);
-    }
-
-    private String convertMessagesToJson(List<QueryMessage> messages) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(messages);
-        } catch (Exception e) {
-            throw new RuntimeException("Error converting messages to JSON", e);
-        }
-    }
-
+    //主查询模块
     public Response StartQuery(QueryData queryData){
         RestTemplate restTemplate = new RestTemplate();
         String model = null;
@@ -93,7 +67,7 @@ public class QueryService{
                     queryData.getId(),
                     queryData.getTitle(),
                     queryData.getHashValue(),
-                    convertMessagesToJson(queryData.getMessages()),
+                    StringUtils.convertMessagesToJson(queryData.getMessages()),
                     model,
                     dataSource,
                     maxToken
@@ -112,7 +86,7 @@ public class QueryService{
 
             queryData.getMessages().add(systemMessage);
 
-            mysqlMessage.setMessages(convertMessagesToJson(queryData.getMessages()));
+            mysqlMessage.setMessages(StringUtils.convertMessagesToJson(queryData.getMessages()));
             mysqlMessageRepository.save(mysqlMessage);
         } catch (Exception e) {
 
@@ -121,6 +95,7 @@ public class QueryService{
         return Response.success("success", queryData);
     }
 
+    // 批量查询模块
 
     public Response batchQuery(String queries, MultipartFile[] files){
         String resultUrl = null;
@@ -159,7 +134,7 @@ public class QueryService{
 
             return Response.success("success", resultUrl);
         } catch (Exception e){
-            sleep(3000);
+            otherUtils.sleep(3000);
             BatchQueries batchQueries = new BatchQueries();
             batchQueries.setQueries(queries);
             batchQueries.setFilePath(upload_path);
@@ -169,6 +144,25 @@ public class QueryService{
             //return Response.fail(1074, "Error processing batch query", null);
         }
     }
+
+    // 查询复用模块
+    public Response GetHistoryQueries() {
+        List<QueryHistory> queryHistory = queryHistoryRepository.findAll();
+        return Response.success("success", queryHistory);
+    }
+
+    public Response DeleteHistoryQuery(Long QueryId) {
+        QueryHistory queryHistory = queryHistoryRepository.findById(QueryId).orElse(null);
+        if (queryHistory != null) {
+            queryHistoryRepository.delete(queryHistory);
+            return Response.success("success");
+        }
+        System.out.println(QueryId);
+
+        return Response.fail(1077, "Error QueryId", null);
+    }
+
+
 
     public Response findData(){
         List<ColumnData> columns= new ArrayList<>();

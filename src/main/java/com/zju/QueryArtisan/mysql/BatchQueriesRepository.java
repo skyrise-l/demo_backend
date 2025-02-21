@@ -1,6 +1,6 @@
 package com.zju.QueryArtisan.mysql;
 
-import com.zju.QueryArtisan.entity.BatchQueries;
+import com.zju.QueryArtisan.entity.mysqlEntity.BatchQueries;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 

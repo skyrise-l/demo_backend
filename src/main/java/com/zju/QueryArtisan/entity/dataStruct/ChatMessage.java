@@ -1,4 +1,4 @@
-package com.zju.QueryArtisan.entity;
+package com.zju.QueryArtisan.entity.dataStruct;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

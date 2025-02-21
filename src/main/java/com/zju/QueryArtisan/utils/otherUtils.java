@@ -1,9 +1,9 @@
 package com.zju.QueryArtisan.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zju.QueryArtisan.entity.MysqlMessage;
-import com.zju.QueryArtisan.entity.QueryData;
-import com.zju.QueryArtisan.entity.QueryMessage;
+import com.zju.QueryArtisan.entity.mysqlEntity.MysqlMessage;
+import com.zju.QueryArtisan.entity.dataStruct.QueryData;
+import com.zju.QueryArtisan.entity.dataStruct.QueryMessage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -112,4 +112,13 @@ public class otherUtils {
             }
         }
     }
+
+    public static void sleep(int time){
+        try {
+            Thread.sleep(time);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

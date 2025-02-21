@@ -2,7 +2,7 @@ package com.zju.QueryArtisan.service;
 
 import com.zju.QueryArtisan.entity.CustomPrompt;
 import com.zju.QueryArtisan.entity.Standard_operator;
-import com.zju.QueryArtisan.entity.Response;
+import com.zju.QueryArtisan.entity.dataStruct.Response;
 import com.zju.QueryArtisan.entity.Customer_operator;
 import com.zju.QueryArtisan.mysql.CustomPromptRepository;
 import com.zju.QueryArtisan.mysql.Customer_operatorRepository;
