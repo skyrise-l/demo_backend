@@ -1,5 +1,6 @@
 package com.zju.QueryArtisan.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zju.QueryArtisan.entity.mysqlEntity.MysqlMessage;
 import com.zju.QueryArtisan.entity.dataStruct.QueryData;
@@ -9,6 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.io.Reader;
 import java.lang.reflect.Field;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -118,6 +124,38 @@ public class otherUtils {
             Thread.sleep(time);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+
+    private static final HttpClient client = HttpClient.newHttpClient();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    // 发送POST请求，返回响应的JSON内容
+    public static JsonNode sendPostRequest(String url, String jsonData) {
+        try {
+            // 创建HTTP请求
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonData, StandardCharsets.UTF_8))
+                    .build();
+
+            // 发送请求并获取响应
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // 检查响应状态码
+            if (response.statusCode() == 200) {
+                // 解析返回的响应内容
+                return objectMapper.readTree(response.body());
+            } else {
+                // 如果返回状态不是 200，抛出异常或返回错误消息
+                System.err.println("Error: Received non-200 status code");
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

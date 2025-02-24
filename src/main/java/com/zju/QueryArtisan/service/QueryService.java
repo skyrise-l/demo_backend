@@ -1,5 +1,6 @@
 package com.zju.QueryArtisan.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zju.QueryArtisan.entity.*;
 import com.zju.QueryArtisan.entity.mysqlEntity.BatchQueries;
@@ -162,7 +163,21 @@ public class QueryService{
         return Response.fail(1077, "Error QueryId", null);
     }
 
+    public Response GetQuerySuggestions(String query) {
+        String url = "http://localhost:9000/data-discovery";
+        String jsonRequest = String.format("{\"query\": \"%s\"}", query);
 
+        // 调用 sendPostRequest 发送请求并获取响应
+        JsonNode response = otherUtils.sendPostRequest(url, jsonRequest);
+
+        // 获取并返回 recommended_queries
+        if (response != null) {
+            return Response.success("success", response.path("recommended_queries"));
+        } else {
+            return Response.fail(1078, "Error recommended_queries", null);
+        }
+
+    }
 
     public Response findData(){
         List<ColumnData> columns= new ArrayList<>();

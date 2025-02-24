@@ -96,4 +96,9 @@ public class QueryController {
         return queryService.DeleteHistoryQuery(QueryId);
     }
 
+    @UserLoginToken
+    @PostMapping("/Home/GetQuerySuggestions")
+    public Response GetQuerySuggestions(@RequestParam("query") String query){
+        return queryService.GetQuerySuggestions(query);
+    }
 }
