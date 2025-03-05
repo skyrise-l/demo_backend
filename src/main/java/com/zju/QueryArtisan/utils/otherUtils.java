@@ -129,7 +129,7 @@ public class otherUtils {
 
 
     private static final HttpClient client = HttpClient.newHttpClient();
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    public static final ObjectMapper objectMapper = new ObjectMapper();
 
     // 发送POST请求，返回响应的JSON内容
     public static JsonNode sendPostRequest(String url, String jsonData) {
@@ -158,5 +158,33 @@ public class otherUtils {
             return null;
         }
     }
+
+    public static JsonNode sendGetRequest(String url) {
+        try {
+            // 创建HTTP请求
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Accept", "application/json")  // 通常 GET 请求的返回是 JSON 格式
+                    .GET()  // 使用 GET 方法
+                    .build();
+
+            // 发送请求并获取响应
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            // 检查响应状态码
+            if (response.statusCode() == 200) {
+                // 解析返回的响应内容
+                return objectMapper.readTree(response.body());
+            } else {
+                // 如果返回状态不是 200，抛出异常或返回错误消息
+                System.err.println("Error: Received non-200 status code");
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
 }

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MysqlMessage {
     @Id
-    private Long id;
+    private String id;
     private String title;
     private String hashValue;
     private String messages;

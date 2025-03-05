@@ -6,7 +6,7 @@ import com.zju.QueryArtisan.entity.mysqlEntity.QueryHistory;
 
 import java.util.Optional;
 
-public interface QueryHistoryRepository extends JpaRepository<QueryHistory, Long>{
-    Optional<QueryHistory> findById(Long Id);
+public interface QueryHistoryRepository extends JpaRepository<QueryHistory, String >{
+    Optional<QueryHistory> findById(String Id);
 }
 

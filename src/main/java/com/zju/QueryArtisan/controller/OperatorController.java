@@ -17,36 +17,36 @@ public class OperatorController {
     private OperatorService operatorService;
 
     @UserLoginToken
-    @GetMapping("/Home/ReadOperator")
+    @GetMapping("/api/Home/ReadOperator")
     public Response ReadOperator(@RequestParam boolean isStandard){
         return operatorService.ReadOperator(isStandard);
     }
 
     @UserLoginToken
-    @PostMapping("/Home/AddOperator")
+    @PostMapping("/api/Home/AddOperator")
     public Response AddOperator(@RequestBody AddOperatorPojo addOperatorPojo){
         return operatorService.AddOperator(addOperatorPojo);
     }
     @UserLoginToken
-    @PostMapping("/Home/EditOperator")
+    @PostMapping("/api/Home/EditOperator")
     public Response EditOperator(@RequestBody EditOperatorPojo editOperatorPojo){
         return operatorService.EditOperator(editOperatorPojo);
     }
 
     @UserLoginToken
-    @GetMapping("/Home/ActiveOperator")
+    @GetMapping("/api/Home/ActiveOperator")
     public Response ActiveOperator(@RequestParam boolean isStandard, @RequestParam Long operatorId){
         return operatorService.ActiveOperator(isStandard, operatorId);
     }
 
     @UserLoginToken
-    @GetMapping("/Home/DeleteOperator")
+    @GetMapping("/api/Home/DeleteOperator")
     public Response DeleteOperator(@RequestParam Long operatorId){
         return operatorService.DeleteOperator(operatorId);
     }
 
     @UserLoginToken
-    @PostMapping("/Home/AddPrompt")
+    @PostMapping("/api/Home/AddPrompt")
     public Response AddPrompt(@RequestBody AddPromptPojo addPromptPojo){
         return operatorService.AddPrompt(addPromptPojo);
     }

@@ -15,17 +15,17 @@ public class UserController {
     @Resource
     private UserService userService;
 
-    @PostMapping("/register")
+    @PostMapping("/api/register")
     public Response register(@RequestBody RegisterPojo registerPojo){
         return userService.register(registerPojo);
     }
 
-    @PostMapping("/login")
+    @PostMapping("/api/login")
     public Response login(@RequestBody LoginPojo loginPojo){
         return userService.login(loginPojo);
     }
 
-    @PostMapping("/updatePassword")
+    @PostMapping("/api/updatePassword")
     @UserLoginToken
     public Response updatePassword(@RequestBody ChangePWPojo changePWPojo){
         return userService.updatePassword(changePWPojo);

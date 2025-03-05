@@ -12,7 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class QueryHistory {
     @Id
-    private Long id;
+    private String id;
     private String query;
     private Double executeTime;
+    private String decomposeQueryArray;
+    private String decomposeAnalysisArray;
+    private String command;
 }
